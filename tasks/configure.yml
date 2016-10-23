@@ -39,6 +39,22 @@
     owner: "{{ mongodb_user }}"
     recurse: yes
 
+- name: Create server cert file
+  copy:
+    dest: "{{ mongodb_ssl_keyfile_path }}"
+    content: "{{ mongodb_ssl_key }}"
+    owner: "{{ mongodb_user }}"
+    mode: 0600
+  when: mongodb_ssl_mode != 'disabled'
+
+- name: Create client cert file
+  copy:
+    dest: "{{ mongodb_ssl_client_certfile_path }}"
+    content: "{{ mongodb_ssl_client_cert }}"
+    owner: "{{ mongodb_user }}"
+    mode: 0600
+  when: mongodb_ssl_mode != 'disabled'
+
 - name: Configure mongodb
   template: src=mongod.conf.j2 dest=/etc/mongod.conf backup=yes owner=root group=root mode=0644
   register: config_result
