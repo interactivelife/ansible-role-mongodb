@@ -73,6 +73,6 @@
   
 - name: Wait when mongodb is started
   wait_for:
-    host: "{{ wait_for_host | default(mongodb_net_bindip) }}"
+    host: "{{ wait_for_host | default(mongodb_net_bindip.split(',')[0]) }}"
     port: "{{ mongodb_net_port }}"
     timeout: 120
