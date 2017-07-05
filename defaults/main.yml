@@ -18,9 +18,11 @@ mongodb_user_update_password: "on_create"        # MongoDB user password update 
 mongodb_manage_service: true
 
 mongodb_user: mongodb
+mongodb_group: mongodb
 mongodb_uid:
 mongodb_gid:
 mongodb_daemon_name: "{{ 'mongod' if ('mongodb-org' in mongodb_package) else 'mongodb' }}"
+mongodb_entreprise: false
 
 ## net Options
 mongodb_net_bindip: 127.0.0.1                    # Comma separated list of ip addresses to listen on
@@ -37,6 +39,7 @@ mongodb_ssl_key:
 mongodb_ssl_client_cert:
 mongodb_ssl_client_key:
 mongodb_ssl_cacerts:
+mongodb_ssl_allow_without_certificates: false
 
 ## processManagement Options
 mongodb_processmanagement_fork: false            # Fork server process
@@ -45,6 +48,8 @@ mongodb_processmanagement_fork: false            # Fork server process
 # Disable or enable security. Possible values: 'disabled', 'enabled'
 mongodb_security_authorization: "disabled"
 mongodb_security_keyfile: /etc/mongodb-keyfile   # Specify path to keyfile with password for inter-process authentication
+mongodb_security_javascript_enabled: true        # Recommended off, but disabling might cause issues in the application
+mongodb_security_redact_client_log_data: false   # Only available in Entreprise Advanced
 
 ## storage Options
 mongodb_storage_dbpath: /data/db                 # Directory for datafiles
@@ -65,6 +70,7 @@ mongodb_storage_prealloc: true                   # Enable data file preallocatio
 mongodb_systemlog_destination: "file"
 mongodb_systemlog_logappend: true                                        # Append to logpath instead of over-writing
 mongodb_systemlog_path: /var/log/mongodb/{{ mongodb_daemon_name }}.log   # Log file to send write to instead of stdout
+mongodb_systemlog_verbosity: 0
 
 ## replication Options
 mongodb_replication_replset:                      # Enable replication <setname>[/<optionalseedhostlist>]

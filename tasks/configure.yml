@@ -10,11 +10,11 @@
   when: mongodb_replication_replset and  mongodb_replication_replset != ''
 
 - name: set mongodb gid
-  group: name=mongodb gid={{ mongodb_gid }} state=present
+  group: name={{ mongodb_group }} gid={{ mongodb_gid }} state=present
   when: mongodb_gid
 
 - name: set mongodb uid
-  user: name=mongodb uid={{ mongodb_uid }} group=mongodb state=present
+  user: name={{ mongodb_user }} uid={{ mongodb_uid }} group={{ mongodb_group }} state=present
   when: mongodb_uid
 
 - name: reset mongodb folder and subfolders with new uid
@@ -22,14 +22,14 @@
   when: mongodb_uid
 
 - name: Create log dir if missing
-  file: state=directory recurse=yes dest={{ mongodb_systemlog_path|dirname }} owner={{ mongodb_user }} group={{mongodb_user}} mode=0755
+  file: state=directory recurse=yes dest={{ mongodb_systemlog_path|dirname }} owner={{ mongodb_user }} group={{ mongodb_group }} mode=0755
 
 - name: Check than logfile exists
   stat: path={{ mongodb_systemlog_path }}
   register: logfile_stat
 
 - name: Create log if missing
-  file: state=touch dest={{ mongodb_systemlog_path }} owner={{ mongodb_user }} group={{mongodb_user}} mode=0755
+  file: state=touch dest={{ mongodb_systemlog_path }} owner={{ mongodb_user }} group={{ mongodb_group }} mode=0755
   when: logfile_stat is defined and not logfile_stat.stat.exists
 
 - name: Ensure dbpath directory

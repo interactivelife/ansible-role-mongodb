@@ -1,0 +1,41 @@
+[Unit]
+Description=High-performance, schema-free document-oriented database
+After=network.target
+Documentation=https://docs.mongodb.org/manual
+
+[Service]
+User={{ mongodb_user }}
+Group={{ mongodb_group }}
+ExecStart=/usr/bin/mongod --quiet --config /etc/mongod.conf
+#RuntimeDirectory=mongodb
+#ExecStartPre=/usr/bin/install -d -o {{ mongodb_user }} -g {{ mongodb_group }} -m 0750 /var/run/mongodb
+{#file size-#}
+LimitFSIZE=infinity
+{#cpu time-#}
+LimitCPU=infinity
+{#virtual memory size-#}
+LimitAS=infinity
+{#open files-#}
+LimitNOFILE=64000
+{#processes/threads-#}
+LimitNPROC=64000
+{#total threads (user+kernel)-#}
+TasksMax=infinity
+TasksAccounting=false
+
+{#The below is translated from the official upstart job:-#}
+LimitRSS=infinity
+{#
+From the systemd.exec (5) man page
+Also note that LimitRSS= is not implemented on Linux, and setting it has no effect.
+Often it is advisable to prefer the resource controls listed in systemd.resource-control(5) over these per-process
+limits, as they apply to services as a whole, may be altered dynamically at runtime,
+and are generally more expressive.
+For example, MemoryLimit= is a more powerful (and working) replacement for LimitRSS=.
+
+Recommended limits for for mongod as specified in
+http://docs.mongodb.org/manual/reference/ulimit/#recommended-settings
+#}
+
+[Install]
+WantedBy=multi-user.target

@@ -11,6 +11,7 @@ net:
   ssl:
     mode: {{ mongodb_ssl_mode }}
     PEMKeyFile: {{ mongodb_ssl_keyfile_path }}
+    allowConnectionsWithoutCertificates: {{ mongodb_ssl_allow_without_certificates }}
   {% endif %}
 
 processManagement:
@@ -26,6 +27,10 @@ replication:
 {% endif %}
 
 security:
+  javascriptEnabled: {{ mongodb_security_javascript_enabled | to_nice_json }}
+{% if mongodb_entreprise %}
+  redactClientLogData: {{ mongodb_security_redact_client_log_data | to_nice_json }}
+{% endif %}
   authorization: {{ mongodb_security_authorization }}
   {% if mongodb_replication_replset and mongodb_security_authorization == 'enabled' -%}
   keyFile: {{ mongodb_security_keyfile }}
@@ -52,8 +57,20 @@ storage:
   preallocDataFiles: {{ mongodb_storage_prealloc | to_nice_json }}
   smallFiles: {{ mongodb_storage_smallfiles | to_nice_json }}
   {% endif %}
+# TODO Any wiredTiger options?
 
 systemLog:
+  verbosity: {{ mongodb_systemlog_verbosity }}
   destination: {{ mongodb_systemlog_destination }}
   logAppend: {{ mongodb_systemlog_logappend | to_nice_json }}
   path: {{ mongodb_systemlog_path }}
+
+#operationProfiling:
+
+#sharding:
+
+## Enterprise-Only Options:
+
+#auditLog:
+
+#snmp:
