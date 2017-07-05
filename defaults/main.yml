@@ -26,6 +26,15 @@ mongodb_net_http_enabled: false                  # Enable http interface
 mongodb_net_ipv6: false                          # Enable IPv6 support (disabled by default)
 mongodb_net_maxconns: 65536                      # Max number of simultaneous connections
 mongodb_net_port: 27017                          # Specify port number
+mongodb_ssl_mode: disabled                       # Valid values: disabled, allowSSL, preferSSL, requireSSL
+mongodb_ssl_keyfile_path: "/etc/mongo-server.pem"
+mongodb_ssl_client_certfile_path: "/etc/mongo-client.pem"
+mongodb_ssl_client_keyfile_path:
+mongodb_ssl_cacertfile_path:
+mongodb_ssl_key:
+mongodb_ssl_client_cert:
+mongodb_ssl_client_key:
+mongodb_ssl_cacerts:
 
 ## processManagement Options
 mongodb_processmanagement_fork: false            # Fork server process

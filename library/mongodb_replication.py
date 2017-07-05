@@ -147,6 +147,7 @@ host_type:
 '''
 import ConfigParser
 import time
+import ssl as sslLib
 from distutils.version import LooseVersion
 try:
     from pymongo.errors import ConnectionFailure
@@ -325,7 +326,10 @@ def main():
             host_name=dict(default='localhost'),
             host_port=dict(default='27017'),
             host_type=dict(default='replica', choices=['replica','arbiter']),
-            ssl=dict(default='false'),
+            ssl=dict(default='false', type='bool'),
+            ssl_certfile=dict(default=None),
+            ssl_keyfile=dict(default=None),
+            ssl_cacerts=dict(default=None),
             build_indexes = dict(type='bool', default='yes'),
             hidden = dict(type='bool', default='no'),
             priority = dict(default='1.0'),
@@ -347,6 +351,9 @@ def main():
     host_port = module.params['host_port']
     host_type = module.params['host_type']
     ssl = module.params['ssl']
+    ssl_certfile = module.params['ssl_certfile']
+    ssl_keyfile = module.params['ssl_keyfile']
+    ssl_cacerts = module.params['ssl_cacerts']
     state = module.params['state']
     priority = float(module.params['priority'])
 
@@ -357,14 +364,14 @@ def main():
             module.fail_json(msg='replica_set parameter is required')
         else:
             client = MongoClient(login_host, int(login_port), replicaSet=replica_set,
-                                 ssl=ssl, serverSelectionTimeoutMS=5000)
+                       ssl=ssl, ssl_certfile=ssl_certfile, ssl_keyfile=ssl_keyfile, ssl_ca_certs=ssl_cacerts, ssl_cert_reqs=sslLib.CERT_NONE, serverSelectionTimeoutMS=5000)
 
         authenticate(client, login_user, login_password)
         client['admin'].command('replSetGetStatus')
 
     except ServerSelectionTimeoutError:
         try:
-            client = MongoClient(login_host, int(login_port), ssl=ssl)
+            client = MongoClient(login_host, int(login_port), ssl=ssl, ssl_certfile=ssl_certfile, ssl_keyfile=ssl_keyfile, ssl_ca_certs=ssl_cacerts, ssl_cert_reqs=sslLib.CERT_NONE)
             authenticate(client, login_user, login_password)
             if state == 'present':
                 new_host = { '_id': 0, 'host': "{0}:{1}".format(host_name, host_port) }
