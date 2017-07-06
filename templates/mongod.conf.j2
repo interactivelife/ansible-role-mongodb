@@ -15,7 +15,7 @@ net:
   {% endif %}
 
 processManagement:
-  fork: {{ mongodb_processmanagement_fork | to_nice_json}}
+  fork: {{ mongodb_processmanagement_fork | to_nice_json }}
 
 {% if mongodb_replication_replset -%}
 replication:

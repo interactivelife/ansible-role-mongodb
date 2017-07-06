@@ -19,7 +19,9 @@
 
 - name: Include replication configuration
   include: replication.yml
-  when: mongodb_replication_replset and mongodb_replication_replset != ''
+  when: ( mongodb_replication_replset
+        and mongodb_replication_replset != ''
+        and mongodb_security_authorization != 'enabled' )
   tags: [mongodb]
 
 - name: Check user admin is exists

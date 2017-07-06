@@ -4,8 +4,8 @@
   mongodb_replication:
     login_host: "{{ mongodb_login_host|default('localhost') }}"
     login_port: "{{ mongodb_login_port|default(27017) }}"
-    login_user: "{{ mongodb_root_admin_name }}"
-    login_password: "{{ mongodb_root_admin_password }}"
+    login_user: "{{ mongodb_root_admin_name if mongodb_security_authorization == 'enabled' else omit }}"
+    login_password: "{{ mongodb_root_admin_password if mongodb_security_authorization == 'enabled' else omit }}"
     replica_set: "{{ mongodb_replication_replset }}"
     host_name: "{{ item.host_name }}"
     host_port: "{{ item.host_port|default(27017) }}"
@@ -13,27 +13,8 @@
     hidden: "{{ item.hidden|default(false) }}"
     priority: "{{ item.priority|default(1.0) }}"
     ssl: "{{ mongodb_ssl_mode != 'disabled' }}"
-    ssl_certfile: "{{ mongodb_ssl_client_certfile_path }}"
-    ssl_keyfile: "{{ mongodb_ssl_client_keyfile_path }}"
-    ssl_cacerts: "{{ mongodb_ssl_cacertfile_path }}"
-  when: mongodb_security_authorization == 'enabled'
-  with_items:
-    - "{{ mongodb_replication_params|default([]) }}"
-
-- name: Replication configuration without auth
-  mongodb_replication:
-    login_host: "{{ mongodb_login_host|default('localhost') }}"
-    login_port: "{{ mongodb_login_port|default(27017) }}"
-    replica_set: "{{ mongodb_replication_replset }}"
-    host_name: "{{ item.host_name }}"
-    host_port: "{{ item.host_port|default(27017) }}"
-    host_type: "{{ item.host_type|default('replica') }}"
-    hidden: "{{ item.hidden|default(false) }}"
-    priority: "{{ item.priority|default(1.0) }}"
-    ssl: "{{ mongodb_ssl_mode != 'disabled' }}"
-    ssl_certfile: "{{ mongodb_ssl_client_certfile_path }}"
-    ssl_keyfile: "{{ mongodb_ssl_client_keyfile_path }}"
-    ssl_cacerts: "{{ mongodb_ssl_cacertfile_path }}"
-  when: mongodb_security_authorization == 'disabled'
+    ssl_certfile: "{{ mongodb_ssl_client_certfile_path if mongodb_ssl_mode != 'disabled' else omit }}"
+    ssl_keyfile: "{{ mongodb_ssl_client_keyfile_path if mongodb_ssl_mode != 'disabled' else omit }}"
+    ssl_cacerts: "{{ mongodb_ssl_cacertfile_path if mongodb_ssl_mode != 'disabled' else omit }}"
   with_items:
     - "{{ mongodb_replication_params|default([]) }}"
