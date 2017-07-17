@@ -12,9 +12,9 @@
     hidden: "{{ item.hidden|default(false) }}"
     priority: "{{ item.priority|default(1.0) }}"
     ssl: "{{ mongodb_ssl_mode != 'disabled' }}"
-    ssl_certfile: "{{ mongodb_ssl_client_certfile_path if mongodb_ssl_mode != 'disabled' else omit }}"
-    ssl_keyfile: "{{ mongodb_ssl_client_keyfile_path if mongodb_ssl_mode != 'disabled' else omit }}"
-    ssl_cacerts: "{{ mongodb_ssl_cacertfile_path if mongodb_ssl_mode != 'disabled' else omit }}"
+    ssl_certfile: "{{ mongodb_ssl_client_certfile_path if mongodb_ssl_mode != 'disabled' and mongodb_ssl_client_certfile_path else omit }}"
+    ssl_keyfile: "{{ mongodb_ssl_client_keyfile_path if mongodb_ssl_mode != 'disabled' and mongodb_ssl_client_keyfile_path else omit }}"
+    ssl_cacerts: "{{ mongodb_ssl_cacertfile_path if mongodb_ssl_mode != 'disabled' and mongodb_ssl_cacertfile_path else omit }}"
   with_items:
     - "{{ mongodb_replication_params|default([]) }}"
   register: mongodb_replica_init
@@ -36,9 +36,9 @@
     hidden: "{{ item.hidden|default(false) }}"
     priority: "{{ item.priority|default(1.0) }}"
     ssl: "{{ mongodb_ssl_mode != 'disabled' }}"
-    ssl_certfile: "{{ mongodb_ssl_client_certfile_path if mongodb_ssl_mode != 'disabled' else omit }}"
-    ssl_keyfile: "{{ mongodb_ssl_client_keyfile_path if mongodb_ssl_mode != 'disabled' else omit }}"
-    ssl_cacerts: "{{ mongodb_ssl_cacertfile_path if mongodb_ssl_mode != 'disabled' else omit }}"
+    ssl_certfile: "{{ mongodb_ssl_client_certfile_path if mongodb_ssl_mode != 'disabled' and mongodb_ssl_client_certfile_path else omit }}"
+    ssl_keyfile: "{{ mongodb_ssl_client_keyfile_path if mongodb_ssl_mode != 'disabled' and mongodb_ssl_client_keyfile_path else omit }}"
+    ssl_cacerts: "{{ mongodb_ssl_cacertfile_path if mongodb_ssl_mode != 'disabled' and mongodb_ssl_cacertfile_path else omit }}"
   when: mongodb_replica_init|failed
   with_items:
     - "{{ mongodb_replication_params|default([]) }}"

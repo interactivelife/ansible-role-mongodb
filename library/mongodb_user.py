@@ -145,6 +145,7 @@ EXAMPLES = '''
 '''
 
 import ConfigParser
+import ssl as sslLib
 from distutils.version import LooseVersion
 try:
     from pymongo.errors import ConnectionFailure
@@ -275,7 +276,10 @@ def main():
             database=dict(required=True, aliases=['db']),
             name=dict(required=True, aliases=['user']),
             password=dict(aliases=['pass']),
-            ssl=dict(default=False, type='bool'),
+            ssl=dict(default='false', type='bool'),
+            ssl_certfile=dict(default=None),
+            ssl_keyfile=dict(default=None),
+            ssl_cacerts=dict(default=None),
             roles=dict(default=None, type='list'),
             state=dict(default='present', choices=['absent', 'present']),
             update_password=dict(default="always", choices=["always", "on_create"]),
@@ -297,15 +301,20 @@ def main():
     user = module.params['name']
     password = module.params['password']
     ssl = module.params['ssl']
+    ssl_certfile = module.params['ssl_certfile']
+    ssl_keyfile = module.params['ssl_keyfile']
+    ssl_cacerts = module.params['ssl_cacerts']
     roles = module.params['roles']
     state = module.params['state']
     update_password = module.params['update_password']
 
     try:
         if replica_set:
-            client = MongoClient(login_host, int(login_port), replicaset=replica_set, ssl=ssl)
+            client = MongoClient(login_host, int(login_port), replicaset=replica_set,
+                       ssl=ssl, ssl_certfile=ssl_certfile, ssl_keyfile=ssl_keyfile, ssl_ca_certs=ssl_cacerts, ssl_cert_reqs=sslLib.CERT_NONE, serverSelectionTimeoutMS=5000)
         else:
-            client = MongoClient(login_host, int(login_port), ssl=ssl)
+            client = MongoClient(login_host, int(login_port),
+                       ssl=ssl, ssl_certfile=ssl_certfile, ssl_keyfile=ssl_keyfile, ssl_ca_certs=ssl_cacerts, ssl_cert_reqs=sslLib.CERT_NONE, serverSelectionTimeoutMS=5000)
 
         if login_user is None and login_password is None:
             mongocnf_creds = load_mongocnf()

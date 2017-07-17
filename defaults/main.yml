@@ -13,7 +13,6 @@ mongodb_apt_key_id:
 
 mongodb_pymongo_from_pip: true                   # Install latest PyMongo via PIP or package manager
 
-mongodb_force_wait_for_port: false
 mongodb_user_update_password: "on_create"        # MongoDB user password update default policy
 mongodb_manage_service: true
 
@@ -30,23 +29,28 @@ mongodb_net_http_enabled: false                  # Enable http interface
 mongodb_net_ipv6: false                          # Enable IPv6 support (disabled by default)
 mongodb_net_maxconns: 65536                      # Max number of simultaneous connections
 mongodb_net_port: 27017                          # Specify port number
-mongodb_ssl_mode: disabled                       # Valid values: disabled, allowSSL, preferSSL, requireSSL
-mongodb_ssl_keyfile_path: "/etc/mongo-server.pem"
-mongodb_ssl_client_certfile_path: "/etc/mongo-client.pem"
-mongodb_ssl_client_keyfile_path:
-mongodb_ssl_cacertfile_path:
-mongodb_ssl_key:
-mongodb_ssl_client_cert:
-mongodb_ssl_client_key:
-mongodb_ssl_cacerts:
-mongodb_ssl_allow_without_certificates: false
+
+# Server SSL options
+mongodb_ssl_mode: disabled                                # Valid values: disabled, allowSSL, preferSSL, requireSSL
+mongodb_ssl_keyfile_path:                                 # The path to the SSL key (pem format)
+mongodb_ssl_keypassword:                                  # The password for the SSL key
+mongodb_ssl_cafile_path:                                  # The root certificate chain from the CA (pem format)
+mongodb_ssl_crlfile_path:                                 # The CRL for the server (pem format)
+mongodb_ssl_allow_without_certificates: false             # Set to true to disable client side certificates
+mongodb_ssl_allow_invalid_certificates: false
+mongodb_ssl_allow_invalid_hostnames: false
+
+# For the SSL connection, client counterpart
+mongodb_ssl_cacertfile_path:                              # The CA cert file of the server (pem format)
+mongodb_ssl_client_certfile_path:                         # The client SSL certificate path for connection
+mongodb_ssl_client_keyfile_path:                          # The client SSL key (pem format)
 
 ## processManagement Options
 mongodb_processmanagement_fork: false            # Fork server process
+mongodb_processmanagement_pidfilepath: ""
 
 ## security Options
-# Disable or enable security. Possible values: 'disabled', 'enabled'
-mongodb_security_authorization: "disabled"
+mongodb_security_authorization: "disabled"       # Disable or enable security. Possible values: 'disabled', 'enabled'
 mongodb_security_keyfile: /etc/mongodb-keyfile   # Specify path to keyfile with password for inter-process authentication
 mongodb_security_javascript_enabled: true        # Recommended off, but disabling might cause issues in the application
 mongodb_security_redact_client_log_data: false   # Only available in Entreprise Advanced
@@ -64,18 +68,62 @@ mongodb_storage_smallfiles: false                # Very useful for non-data node
 mongodb_storage_journal_enabled: true            # Enable journaling
 mongodb_storage_prealloc: true                   # Enable data file preallocation
 
+# wiredTiger specific options
+mongodb_storage_wired_tiger_cache_size_gb:               # Should be left empty
+mongodb_storage_wired_tiger_journal_compressor: snappy   # One of none, snappy, zlib
+mongodb_storage_wired_tiger_directory_for_indexes: false # To split collections and index directories
+mongodb_storage_wired_tiger_block_compressor: snappy     # One of none, snappy, zlib
+mongodb_storage_wired_tiger_prefix_compression: true     # Enables or disables prefix compression for index data
+
 ## systemLog Options
 ## The destination to which MongoDB sends all log output. Specify either 'file' or 'syslog'.
 ## If you specify 'file', you must also specify mongodb_systemlog_path.
 mongodb_systemlog_destination: "file"
 mongodb_systemlog_logappend: true                                        # Append to logpath instead of over-writing
 mongodb_systemlog_path: /var/log/mongodb/{{ mongodb_daemon_name }}.log   # Log file to send write to instead of stdout
+mongodb_systemlog_logrotate: rename             # Either rename or reopen
+mongodb_systemlog_syslog_facility: user
+mongodb_systemlog_timestamp_format: iso8601-local # Either iso8601-local or ctime or iso8601-local
+# The following options are only really useful for debugging and troubleshooting
 mongodb_systemlog_verbosity: 0
+mongodb_systemlog_quiet: false
+mongodb_systemlog_trace_all_exceptions: false
+mongodb_systemlog_component_verbosity: {}
+
+# Sample component verbosity configuration:
+#mongodb_systemlog_component_verbosity:
+#  accessControl:
+#    verbosity: 5
+#  command:
+#    verbosity: 5
+#  control:
+#    verbosity: 5
+#  ftdc:
+#    verbosity: 5
+#  geo:
+#    verbosity: 0
+#  index:
+#    verbosity: 0
+#  network:
+#    verbosity: 5
+#  query:
+#    verbosity: 5
+#  replication:
+#    verbosity: 0
+#  sharding:
+#    verbosity: 0
+#  storage:
+#    verbosity: 0
+#    journal:
+#      verbosity: 0
+#  write:
+#    verbosity: 5
 
 ## replication Options
 mongodb_replication_replset:                      # Enable replication <setname>[/<optionalseedhostlist>]
 mongodb_replication_replindexprefetch: "all"      # specify index prefetching behavior (if secondary) [none|_id_only|all]
 mongodb_replication_oplogsize: 1024               # specifies a maximum size in megabytes for the replication operation log
+mongodb_replication_majority_read_concern: false  # Enables read concern level of "majority"
 
 # MMS Agent
 mongodb_mms_agent_pkg: https://mms.mongodb.com/download/agent/automation/mongodb-mms-automation-agent-manager_1.4.2.783-1_amd64.deb
@@ -83,25 +131,34 @@ mongodb_mms_group_id: ""
 mongodb_mms_api_key: ""
 mongodb_mms_base_url: https://mms.mongodb.com
 
+## operationProfiling options
+mongodb_operation_profiling_slow_threshold_ms: 100  # The threshold in milliseconds at which the database profiler considers a query slow
+mongodb_operation_profiling_mode: "off"             # One of off, slowOp, all
+
 # password for inter-process authentication
 # please regenerate this file on production environment with command 'openssl rand -base64 741'
-mongodb_keyfile_content: |
-  8pYcxvCqoe89kcp33KuTtKVf5MoHGEFjTnudrq5BosvWRoIxLowmdjrmUpVfAivh
-  CHjqM6w0zVBytAxH1lW+7teMYe6eDn2S/O/1YlRRiW57bWU3zjliW3VdguJar5i9
-  Z+1a8lI+0S9pWynbv9+Ao0aXFjSJYVxAm/w7DJbVRGcPhsPmExiSBDw8szfQ8PAU
-  2hwRl7nqPZZMMR+uQThg/zV9rOzHJmkqZtsO4UJSilG9euLCYrzW2hdoPuCrEDhu
-  Vsi5+nwAgYR9dP2oWkmGN1dwRe0ixSIM2UzFgpaXZaMOG6VztmFrlVXh8oFDRGM0
-  cGrFHcnGF7oUGfWnI2Cekngk64dHA2qD7WxXPbQ/svn9EfTY5aPw5lXzKA87Ds8p
-  KHVFUYvmA6wVsxb/riGLwc+XZlb6M9gqHn1XSpsnYRjF6UzfRcRR2WyCxLZELaqu
-  iKxLKB5FYqMBH7Sqg3qBCtE53vZ7T1nefq5RFzmykviYP63Uhu/A2EQatrMnaFPl
-  TTG5CaPjob45CBSyMrheYRWKqxdWN93BTgiTW7p0U6RB0/OCUbsVX6IG3I9N8Uqt
-  l8Kc+7aOmtUqFkwo8w30prIOjStMrokxNsuK9KTUiPu2cj7gwYQ574vV3hQvQPAr
-  hhb9ohKr0zoPQt31iTj0FDkJzPepeuzqeq8F51HB56RZKpXdRTfY8G6OaOT68cV5
-  vP1O6T/okFKrl41FQ3CyYN5eRHyRTK99zTytrjoP2EbtIZ18z+bg/angRHYNzbgk
-  lc3jpiGzs1ZWHD0nxOmHCMhU4usEcFbV6FlOxzlwrsEhHkeiununlCsNHatiDgzp
-  ZWLnP/mXKV992/Jhu0Z577DHlh+3JIYx0PceB9yzACJ8MNARHF7QpBkhtuGMGZpF
-  T+c73exupZFxItXs1Bnhe3djgE3MKKyYvxNUIbcTJoe7nhVMrwO/7lBSpVLvC4p3
-  wR700U0LDaGGQpslGtiE56SemgoP
+#mongodb_keyfile_content: |
+#  8pYcxvCqoe89kcp33KuTtKVf5MoHGEFjTnudrq5BosvWRoIxLowmdjrmUpVfAivh
+#  CHjqM6w0zVBytAxH1lW+7teMYe6eDn2S/O/1YlRRiW57bWU3zjliW3VdguJar5i9
+#  Z+1a8lI+0S9pWynbv9+Ao0aXFjSJYVxAm/w7DJbVRGcPhsPmExiSBDw8szfQ8PAU
+#  2hwRl7nqPZZMMR+uQThg/zV9rOzHJmkqZtsO4UJSilG9euLCYrzW2hdoPuCrEDhu
+#  Vsi5+nwAgYR9dP2oWkmGN1dwRe0ixSIM2UzFgpaXZaMOG6VztmFrlVXh8oFDRGM0
+#  cGrFHcnGF7oUGfWnI2Cekngk64dHA2qD7WxXPbQ/svn9EfTY5aPw5lXzKA87Ds8p
+#  KHVFUYvmA6wVsxb/riGLwc+XZlb6M9gqHn1XSpsnYRjF6UzfRcRR2WyCxLZELaqu
+#  iKxLKB5FYqMBH7Sqg3qBCtE53vZ7T1nefq5RFzmykviYP63Uhu/A2EQatrMnaFPl
+#  TTG5CaPjob45CBSyMrheYRWKqxdWN93BTgiTW7p0U6RB0/OCUbsVX6IG3I9N8Uqt
+#  l8Kc+7aOmtUqFkwo8w30prIOjStMrokxNsuK9KTUiPu2cj7gwYQ574vV3hQvQPAr
+#  hhb9ohKr0zoPQt31iTj0FDkJzPepeuzqeq8F51HB56RZKpXdRTfY8G6OaOT68cV5
+#  vP1O6T/okFKrl41FQ3CyYN5eRHyRTK99zTytrjoP2EbtIZ18z+bg/angRHYNzbgk
+#  lc3jpiGzs1ZWHD0nxOmHCMhU4usEcFbV6FlOxzlwrsEhHkeiununlCsNHatiDgzp
+#  ZWLnP/mXKV992/Jhu0Z577DHlh+3JIYx0PceB9yzACJ8MNARHF7QpBkhtuGMGZpF
+#  T+c73exupZFxItXs1Bnhe3djgE3MKKyYvxNUIbcTJoe7nhVMrwO/7lBSpVLvC4p3
+#  wR700U0LDaGGQpslGtiE56SemgoP
+#
+#mongodb_ssl_client_key_content:                           # The content of the client SSL key (pem format)
+#mongodb_ssl_client_cert_content:                          # The content of the client SSL certificate (pem format)
+#mongodb_ssl_keyfile_content:                              # The content of the keyfile (pem format)
+#mongodb_ssl_cafile_content:                               # The content of the CS chain file (pem format)
 
 # names and passwords for administrative users
 mongodb_user_admin_name: siteUserAdmin

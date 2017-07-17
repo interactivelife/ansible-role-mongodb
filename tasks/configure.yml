@@ -7,7 +7,10 @@
     owner: "{{ mongodb_user }}"
     group: "root"
     mode: 0600
-  when: mongodb_replication_replset and  mongodb_replication_replset != ''
+  when:
+    - mongodb_replication_replset is defined and mongodb_replication_replset != ''
+    - mongodb_keyfile_content is defined and mongodb_keyfile_content != ''
+    - mongodb_security_authorization == 'enabled'
 
 - name: set mongodb gid
   group: name={{ mongodb_group }} gid={{ mongodb_gid }} state=present
@@ -42,18 +45,33 @@
 - name: Create server cert file
   copy:
     dest: "{{ mongodb_ssl_keyfile_path }}"
-    content: "{{ mongodb_ssl_key }}"
+    content: "{{ mongodb_ssl_keyfile_content }}"
     owner: "{{ mongodb_user }}"
     mode: 0600
-  when: mongodb_ssl_mode != 'disabled'
+  when:
+    - mongodb_ssl_mode != 'disabled'
+    - mongodb_ssl_keyfile_content is defined and mongodb_ssl_keyfile_content != ''
+
+- name: Create server CA chain file
+  copy:
+    dest: "{{ mongodb_ssl_cafile_path }}"
+    content: "{{ mongodb_ssl_cafile_content }}"
+    owner: "{{ mongodb_user }}"
+    mode: 0600
+  when:
+    - mongodb_ssl_mode != 'disabled'
+    - mongodb_ssl_cafile_content is defined and mongodb_ssl_cafile_content != ''
+
 
 - name: Create client cert file
   copy:
     dest: "{{ mongodb_ssl_client_certfile_path }}"
-    content: "{{ mongodb_ssl_client_cert }}"
+    content: "{{ mongodb_ssl_client_cert_content }}"
     owner: "{{ mongodb_user }}"
     mode: 0600
-  when: mongodb_ssl_mode != 'disabled'
+  when:
+    - mongodb_ssl_mode != 'disabled'
+    - mongodb_ssl_client_cert_content is defined and mongodb_ssl_client_cert_content != ''
 
 - name: Configure mongodb
   template: src=mongod.conf.j2 dest=/etc/mongod.conf backup=yes owner=root group=root mode=0644

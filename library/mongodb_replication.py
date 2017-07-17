@@ -45,6 +45,12 @@ options:
             - The port to connect to
         required: false
         default: 27017
+    login_database:
+        version_added: "2.0"
+        description:
+            - The database where login credentials are stored
+        required: false
+        default: null
     replica_set:
         description:
             - Replica set to connect to (automatically connects to primary for writes)
@@ -299,7 +305,7 @@ def wait_for_ok_and_master(module, client, timeout = 60):
 
         time.sleep(1)
 
-def authenticate(client, login_user, login_password):
+def authenticate(client, login_user, login_password, source=None):
     if login_user is None and login_password is None:
         mongocnf_creds = load_mongocnf()
         if mongocnf_creds is not False:
@@ -309,7 +315,7 @@ def authenticate(client, login_user, login_password):
             module.fail_json(msg='when supplying login arguments, both login_user and login_password must be provided')
 
     if login_user is not None and login_password is not None:
-        client.admin.authenticate(login_user, login_password)
+        client.admin.authenticate(login_user, login_password, source=source)
 
 # =========================================
 # Module execution.
@@ -322,6 +328,7 @@ def main():
             login_password=dict(default=None),
             login_host=dict(default='localhost'),
             login_port=dict(default='27017'),
+            login_database=dict(default=None),
             replica_set=dict(default=None),
             host_name=dict(default='localhost'),
             host_port=dict(default='27017'),
@@ -346,6 +353,8 @@ def main():
     login_password = module.params['login_password']
     login_host = module.params['login_host']
     login_port = module.params['login_port']
+    login_database = module.params['login_database']
+
     replica_set = module.params['replica_set']
     host_name = module.params['host_name']
     host_port = module.params['host_port']

@@ -1,3 +1,5 @@
+#jinja2: lstrip_blocks: True
+{# The above line is important for YAML-formatted files #}
 # {{ ansible_managed }}
 
 net:
@@ -7,70 +9,110 @@ net:
   ipv6: {{ mongodb_net_ipv6 | to_nice_json }}
   maxIncomingConnections: {{ mongodb_net_maxconns }}
   port: {{ mongodb_net_port }}
-  {% if mongodb_ssl_mode != 'disabled' -%}
+  {% if mongodb_ssl_mode != 'disabled' %}
   ssl:
     mode: {{ mongodb_ssl_mode }}
     PEMKeyFile: {{ mongodb_ssl_keyfile_path }}
-    allowConnectionsWithoutCertificates: {{ mongodb_ssl_allow_without_certificates }}
+    {% if mongodb_ssl_keypassword %}
+    PEMKeyPassword: {{ mongodb_ssl_keypassword }}
+    {% endif %}
+    {% if mongodb_ssl_cafile_path %}
+    CAFile: {{ mongodb_ssl_cafile_path }}
+    {% endif %}
+    {% if mongodb_ssl_crlfile_path %}
+    CRLFile: {{ mongodb_ssl_crlfile_path }}
+    {% endif %}
+    allowConnectionsWithoutCertificates: {{ mongodb_ssl_allow_without_certificates | to_nice_json }}
+    allowInvalidCertificates: {{ mongodb_ssl_allow_invalid_certificates | to_nice_json }}
+    allowInvalidHostnames: {{ mongodb_ssl_allow_invalid_hostnames | to_nice_json }}
   {% endif %}
 
 processManagement:
   fork: {{ mongodb_processmanagement_fork | to_nice_json }}
+  {% if mongodb_processmanagement_pidfilepath %}pidFilePath: {{ mongodb_processmanagement_pidfilepath }}{% endif %}
 
-{% if mongodb_replication_replset -%}
+{% if mongodb_replication_replset %}
 replication:
   oplogSizeMB: {{ mongodb_replication_oplogsize | int }}
   replSetName: {{ mongodb_replication_replset }}
-  {% if mongodb_storage_engine == 'mmapv1' -%}
+  {% if mongodb_storage_engine == 'mmapv1' %}
   secondaryIndexPrefetch: {{ mongodb_replication_replindexprefetch }}
   {% endif %}
+  enableMajorityReadConcern: {{ mongodb_replication_majority_read_concern | to_nice_json }}
 {% endif %}
 
 security:
   javascriptEnabled: {{ mongodb_security_javascript_enabled | to_nice_json }}
-{% if mongodb_entreprise %}
+  {% if mongodb_entreprise %}
   redactClientLogData: {{ mongodb_security_redact_client_log_data | to_nice_json }}
-{% endif %}
+  enableEncryption: {{ mongodb_security_enable_encryption | to_nice_json }}
+  {% if mongodb_security_enable_encryption %}
+  encryptionKeyFile: {{ mongodb_security_encryption_keyfile_path }}
+  {% endif %}
+  {% endif %}
   authorization: {{ mongodb_security_authorization }}
-  {% if mongodb_replication_replset and mongodb_security_authorization == 'enabled' -%}
+  {% if mongodb_replication_replset and mongodb_security_authorization == 'enabled' and mongodb_keyfile_content is defined and mongodb_keyfile_content != '' %}
   keyFile: {{ mongodb_security_keyfile }}
   {% endif %}
 
 storage:
   dbPath: {{ mongodb_storage_dbpath }}
-  {% if mongodb_major_version|float >= 3.0 -%}
+  {% if mongodb_major_version|float >= 3.0 %}
   engine: {{ mongodb_storage_engine }}
-  {% endif -%}
+  {% endif %}
   journal:
     enabled: {{ mongodb_storage_journal_enabled | to_nice_json }}
-  {% if mongodb_storage_engine == 'mmapv1' -%}
+  {% if mongodb_storage_engine == 'mmapv1' %}
   mmapv1:
     quota:
       enforced: {{ mongodb_storage_quota_enforced | to_nice_json }}
       maxFilesPerDB: {{ mongodb_storage_quota_maxfiles }}
     smallFiles: {{ mongodb_storage_smallfiles | to_nice_json }}
-  {% endif -%}
-  {% if mongodb_major_version == '2.6' -%}
+  {% endif %}
+  {% if mongodb_major_version == '2.6' %}
   quota:
     enforced: {{ mongodb_storage_quota_enforced | to_nice_json }}
     maxFilesPerDB: {{ mongodb_storage_quota_maxfiles }}
   preallocDataFiles: {{ mongodb_storage_prealloc | to_nice_json }}
   smallFiles: {{ mongodb_storage_smallfiles | to_nice_json }}
   {% endif %}
-# TODO Any wiredTiger options?
+  {% if mongodb_storage_engine == 'wiredTiger' %}
+  wiredTiger:
+    engineConfig:
+      journalCompressor: {{ mongodb_storage_wired_tiger_journal_compressor }}
+      {% if mongodb_storage_wired_tiger_cache_size_gb %}
+      cacheSizeGB: {{ mongodb_storage_wired_tiger_cache_size_gb }}
+      {% endif %}
+      directoryForIndexes: {{ mongodb_storage_wired_tiger_directory_for_indexes | to_nice_json }}
+    collectionConfig:
+      blockCompressor: {{ mongodb_storage_wired_tiger_block_compressor }}
+    indexConfig:
+      prefixCompression: {{ mongodb_storage_wired_tiger_prefix_compression | to_nice_json }}
+  {% endif %}
 
 systemLog:
   verbosity: {{ mongodb_systemlog_verbosity }}
   destination: {{ mongodb_systemlog_destination }}
   logAppend: {{ mongodb_systemlog_logappend | to_nice_json }}
+  logRotate: {{ mongodb_systemlog_logrotate }}
+  timeStampFormat: {{ mongodb_systemlog_timestamp_format }}
   path: {{ mongodb_systemlog_path }}
+  quiet: {{ mongodb_systemlog_quiet | to_nice_json }}
+  traceAllExceptions: {{ mongodb_systemlog_trace_all_exceptions | to_nice_json }}
+  component: {{ mongodb_systemlog_component_verbosity | to_json }}
+  syslogFacility: {{ mongodb_systemlog_syslog_facility }}
 
-#operationProfiling:
+operationProfiling:
+  slowOpThresholdMs: {{ mongodb_operation_profiling_slow_threshold_ms | int }}
+  mode: {{ mongodb_operation_profiling_mode }}
 
-#sharding:
+{#
+sharding:
+  ...
 
-## Enterprise-Only Options:
+auditLog:
+  ...
 
-#auditLog:
-
-#snmp:
+snmp:
+  ...
+#}
