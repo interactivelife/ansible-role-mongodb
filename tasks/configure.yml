@@ -42,6 +42,44 @@
     owner: "{{ mongodb_user }}"
     recurse: yes
 
+- name: Create SSL directory
+  file:
+    path: "{{ mongodb_ssl_keyfile_path | dirname }}"
+    state: directory
+    recurse: yes
+    owner: 'root'
+    group: '{{ mongodb_group }}'
+    mode: 0750
+  when: mongodb_ssl_cert_source is defined
+
+- name: Make sure the SSL certificate/key file is there
+  file:
+    path: "{{ mongodb_ssl_keyfile_path }}"
+    state: touch
+    owner: 'root'
+    group: '{{ mongodb_group }}'
+    mode: 0640
+
+- name: Get the SSL server certificate for MongoDB
+  include_role:
+    name: ssl-certificate
+    private: yes
+  vars:
+    ssl_cert_source: '{{ mongodb_ssl_cert_source }}'
+    ssl_cert_pem_name: 'mongodb-server'
+    ssl_cert_pem_key_directory: '{{ mongodb_ssl_directory }}'
+    ssl_cert_pem_cert_directory: '{{ mongodb_ssl_directory }}'
+    ssl_cert_pem_key_group: '{{ mongodb_group }}'
+    ssl_cert_pem_cert_group: '{{ mongodb_group }}'
+    ssl_cert_freeipa_principal_name: MONGODB/{{ ansible_fqdn }}
+    ssl_cert_freeipa_post_renew_command: "sed -n w{{ mongodb_ssl_keyfile_path }} {{ mongodb_ssl_directory }}/mongodb-server.key {{ mongodb_ssl_directory }}/mongodb-server.crt"
+    ssl_cert_static_pem_cert_content: "{{ mongodb_ssl_certfile_content | default('') }}"
+    ssl_cert_static_pem_key_content: "{{ mongodb_ssl_keyfile_content | default('') }}"
+    ssl_cert_static_pem_chain_content: "{{ mongodb_ssl_cafile_content | default('') }}"
+  when:
+    - mongodb_ssl_mode != 'disabled'
+    - mongodb_ssl_cert_source is defined
+
 - name: Create server cert file
   copy:
     dest: "{{ mongodb_ssl_keyfile_path }}"
@@ -51,6 +89,7 @@
   when:
     - mongodb_ssl_mode != 'disabled'
     - mongodb_ssl_keyfile_content is defined and mongodb_ssl_keyfile_content != ''
+    - mongodb_ssl_cert_source is not defined
 
 - name: Create server CA chain file
   copy:
@@ -61,7 +100,7 @@
   when:
     - mongodb_ssl_mode != 'disabled'
     - mongodb_ssl_cafile_content is defined and mongodb_ssl_cafile_content != ''
-
+    - mongodb_ssl_cert_source is not defined
 
 - name: Create client cert file
   copy:
@@ -72,6 +111,7 @@
   when:
     - mongodb_ssl_mode != 'disabled'
     - mongodb_ssl_client_cert_content is defined and mongodb_ssl_client_cert_content != ''
+    - mongodb_ssl_cert_source is not defined
 
 - name: Configure mongodb
   template: src=mongod.conf.j2 dest=/etc/mongod.conf backup=yes owner=root group=root mode=0644

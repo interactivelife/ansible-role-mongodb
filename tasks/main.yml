@@ -47,6 +47,7 @@
           and mongodb_user_admin_check.rc != 0 )
   tags: [mongodb]
 
+# TODO the mongodb_user module bundled with ansible does not support client certificates, and it is not reading the custom library
 - name: create normal users with replicaset
   mongodb_user:
     database: "{{ item.database }}"
@@ -59,9 +60,9 @@
     login_port: "{{ mongodb_login_port|default(27017) }}"
     login_host: "{{ mongodb_login_host|default('localhost') }}"
     ssl: "{{ mongodb_ssl_mode != 'disabled' }}"
-    ssl_certfile: "{{ mongodb_ssl_client_certfile_path if mongodb_ssl_mode != 'disabled' and mongodb_ssl_client_certfile_path else omit }}"
-    ssl_keyfile: "{{ mongodb_ssl_client_keyfile_path if mongodb_ssl_mode != 'disabled' and mongodb_ssl_client_keyfile_path else omit }}"
-    ssl_cacerts: "{{ mongodb_ssl_cacertfile_path if mongodb_ssl_mode != 'disabled' and mongodb_ssl_cacertfile_path else omit }}"
+#    ssl_certfile: "{{ mongodb_ssl_client_certfile_path if mongodb_ssl_mode != 'disabled' and mongodb_ssl_client_certfile_path else omit }}"
+#    ssl_keyfile: "{{ mongodb_ssl_client_keyfile_path if mongodb_ssl_mode != 'disabled' and mongodb_ssl_client_keyfile_path else omit }}"
+#    ssl_cacerts: "{{ mongodb_ssl_cacertfile_path if mongodb_ssl_mode != 'disabled' and mongodb_ssl_cacertfile_path else omit }}"
   with_items:
     - "{{ mongodb_users | default([]) }}"
   when: ( mongodb_replication_replset
@@ -82,9 +83,9 @@
     login_password: "{{ mongodb_user_admin_password }}"
     login_port: "{{ mongodb_net_port }}"
     ssl: "{{ mongodb_ssl_mode != 'disabled' }}"
-    ssl_certfile: "{{ mongodb_ssl_client_certfile_path if mongodb_ssl_mode != 'disabled' and mongodb_ssl_client_certfile_path else omit }}"
-    ssl_keyfile: "{{ mongodb_ssl_client_keyfile_path if mongodb_ssl_mode != 'disabled' and mongodb_ssl_client_keyfile_path else omit }}"
-    ssl_cacerts: "{{ mongodb_ssl_cacertfile_path if mongodb_ssl_mode != 'disabled' and mongodb_ssl_cacertfile_path else omit }}"
+#    ssl_certfile: "{{ mongodb_ssl_client_certfile_path if mongodb_ssl_mode != 'disabled' and mongodb_ssl_client_certfile_path else omit }}"
+#    ssl_keyfile: "{{ mongodb_ssl_client_keyfile_path if mongodb_ssl_mode != 'disabled' and mongodb_ssl_client_keyfile_path else omit }}"
+#    ssl_cacerts: "{{ mongodb_ssl_cacertfile_path if mongodb_ssl_mode != 'disabled' and mongodb_ssl_cacertfile_path else omit }}"
   with_items:
     - "{{ mongodb_users | default([]) }}"
   when: ( mongodb_security_authorization == 'enabled'
